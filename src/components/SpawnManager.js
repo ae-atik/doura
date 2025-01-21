@@ -25,8 +25,8 @@ export default class SpawnManager {
       }
       this.coinsRef.current.push(...coins);
 
-      if (Math.random() < 0.2) {
-        const buffTypes = [ "magnet", "shield","speed"];
+      if (Math.random() < 0.5) {
+        const buffTypes = [ "speed"];//"magnet", "shield",
         const buffType = buffTypes[Math.floor(Math.random() * buffTypes.length)];
         const buff = new Buff(this.scene, this.lanePositions, buffType);
         this.buffsRef.current.push(buff);
