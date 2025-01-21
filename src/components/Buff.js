@@ -1,3 +1,4 @@
+// Buff.js
 import * as THREE from "three";
 
 export default class Buff {
@@ -25,10 +26,11 @@ export default class Buff {
     scene.add(this.mesh);
   }
 
-  moveForward() {
-    this.mesh.position.z += 0.12;
+  moveForward(speedMultiplier = 1) {
+    this.mesh.position.z += 0.1 * speedMultiplier; // Adjust speed with multiplier
     this.mesh.rotation.y += 0.1;
   }
+  
 
   isOutOfView() {
     return this.mesh.position.z > 5;

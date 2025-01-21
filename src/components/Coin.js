@@ -1,3 +1,4 @@
+// Coin.js
 import * as THREE from "three";
 
 export class Coin {
@@ -38,10 +39,11 @@ export class Coin {
     scene.add(this.mesh);
   }
 
-  moveForward() {
-    this.mesh.position.z += 0.1; // Slightly increased speed
+  moveForward(speedMultiplier = 1) {
+    this.mesh.position.z += 0.1 * speedMultiplier; // Adjust speed with multiplier
     this.mesh.rotation.y += 0.1;
   }
+  
 
   isOutOfView() {
     return this.mesh.position.z > 5;

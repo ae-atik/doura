@@ -1,3 +1,4 @@
+// Enemy.js
 import * as THREE from "three";
 
 export class Enemy {
@@ -18,10 +19,11 @@ export class Enemy {
     scene.add(this.mesh);
   }
 
-  moveForward() {
-    this.mesh.position.z += 0.1;
-    this.boundingBox.setFromObject(this.mesh); // Update bounding box
+  moveForward(speedMultiplier = 1) {
+    this.mesh.position.z += 0.1 * speedMultiplier; // Adjust speed with multiplier
+    this.boundingBox.setFromObject(this.mesh);
   }
+  
 
   checkCollision(player) {
     return this.boundingBox.intersectsBox(player.boundingBox); // More accurate collision detection

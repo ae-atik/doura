@@ -1,3 +1,4 @@
+// GameManager.js
 export class GameManager {
     constructor(player, enemiesRef, setLane, setIsGameOver) {
       this.player = player;
