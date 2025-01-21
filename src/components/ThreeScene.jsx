@@ -13,7 +13,7 @@ const ThreeScene = () => {
   const [isGameOver, setIsGameOver] = useState(false);
   const [coinCount, setCoinCount] = useState(0);
   const [hasMagnet, setHasMagnet] = useState(false);
-  const [hasShield, setHasShield] = useState(false);
+  const [setHasShield] = useState(false);
   // Add shield ref
   const hasShieldRef = useRef(false);
   
