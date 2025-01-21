@@ -13,10 +13,12 @@ const ThreeScene = () => {
   const [isGameOver, setIsGameOver] = useState(false);
   const [coinCount, setCoinCount] = useState(0);
   const [hasMagnet, setHasMagnet] = useState(false);
-  const [setHasShield] = useState(false);
+  // eslint-disable-next-line no-unused-vars
+  const [hasShield, setHasShield] = useState(false); // Fixed incorrect useState declaration
+
   // Add shield ref
   const hasShieldRef = useRef(false);
-  
+
   // Replace speedMultiplier state with a ref
   const speedMultiplier = useRef(1);
 
@@ -92,11 +94,11 @@ const ThreeScene = () => {
     const animate = () => {
       if (isGameOver) return;
       animationFrameId = requestAnimationFrame(animate);
-    
+
       player.update();
-    
+
       const currentSpeed = speedMultiplier.current;
-    
+
       enemiesRef.current.forEach((enemy, index) => {
         enemy.moveForward(currentSpeed);
         // Use ref for shield
