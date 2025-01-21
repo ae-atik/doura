@@ -14,21 +14,50 @@ export default class SpawnManager {
 
   spawnObjects(isGameOver) {
     if (!isGameOver) {
+      // Spawn Enemy
       const newEnemy = new Enemy(this.scene, this.lanePositions);
       this.enemiesRef.current.push(newEnemy);
 
+      // Spawn Coins
       const coinLane = Math.floor(Math.random() * 3) + 1;
       let coins = [];
       for (let i = 0; i < 5; i++) {
-        const coin = new Coin(this.scene, this.lanePositions, [...this.enemiesRef.current, ...this.coinsRef.current], coinLane, i);
+        const coin = new Coin(
+          this.scene,
+          this.lanePositions,
+          [...this.enemiesRef.current, ...this.coinsRef.current, ...this.buffsRef.current],
+          coinLane,
+          i
+        );
         coins.push(coin);
       }
       this.coinsRef.current.push(...coins);
 
-      if (Math.random() < 0.5) {
-        const buffTypes = [ "speed"];//"magnet", "shield",
+      // Spawn Buffs
+      if (Math.random() < 1) {
+        const buffTypes = [ "magnet", "speed", "shield"];
         const buffType = buffTypes[Math.floor(Math.random() * buffTypes.length)];
-        const buff = new Buff(this.scene, this.lanePositions, buffType);
+
+        // Combine all existing objects to check for conflicts
+        const existingObjects = [
+          ...this.enemiesRef.current,
+          ...this.coinsRef.current,
+          ...this.buffsRef.current,
+        ];
+
+        // Determine the index for z-position offset
+        const currentBuffsInLane = this.buffsRef.current.filter(
+          (buff) => buff.type === buffType
+        ).length;
+
+        const buff = new Buff(
+          this.scene,
+          this.lanePositions,
+          buffType,
+          existingObjects, // Pass existing objects
+          null, // Let Buff.js choose a safe lane
+          currentBuffsInLane // Offset z-position
+        );
         this.buffsRef.current.push(buff);
       }
     }

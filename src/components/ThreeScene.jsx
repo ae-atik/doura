@@ -14,6 +14,8 @@ const ThreeScene = () => {
   const [coinCount, setCoinCount] = useState(0);
   const [hasMagnet, setHasMagnet] = useState(false);
   const [hasShield, setHasShield] = useState(false);
+  // Add shield ref
+  const hasShieldRef = useRef(false);
   
   // Replace speedMultiplier state with a ref
   const speedMultiplier = useRef(1);
@@ -55,7 +57,10 @@ const ThreeScene = () => {
     // Initialize BuffManager with the speedMultiplier setter
     const buffManager = new BuffManager(
       setHasMagnet,
-      setHasShield,
+      (value) => {
+        setHasShield(value);
+        hasShieldRef.current = value; // Update ref
+      },
       setSpeedMultiplierFunc
     );
 
@@ -87,17 +92,15 @@ const ThreeScene = () => {
     const animate = () => {
       if (isGameOver) return;
       animationFrameId = requestAnimationFrame(animate);
-
-      // Update Player
+    
       player.update();
-
-      // Current Speed from Ref
+    
       const currentSpeed = speedMultiplier.current;
-
-      // Update Enemies
+    
       enemiesRef.current.forEach((enemy, index) => {
         enemy.moveForward(currentSpeed);
-        if (!hasShield && enemy.checkCollision(player)) {
+        // Use ref for shield
+        if (!hasShieldRef.current && enemy.checkCollision(player)) {
           setIsGameOver(true);
           return;
         }
@@ -128,7 +131,7 @@ const ThreeScene = () => {
       buffsRef.current.forEach((buff, index) => {
         buff.moveForward(currentSpeed);
         if (buff.checkCollision(player)) {
-          buffManager.activateBuff(buff.type); // Pass only buff.type
+          buffManager.activateBuff(buff.type);
           buff.remove();
           buffsRef.current.splice(index, 1);
         }
@@ -152,7 +155,7 @@ const ThreeScene = () => {
       clearInterval(objectSpawnInterval);
       mountRef.current.removeChild(renderer.domElement);
     };
-  }, [isGameOver]); // Removed speedMultiplier from dependencies
+  }, [isGameOver]); // Removed hasShield from dependencies
 
   return (
     <div>
