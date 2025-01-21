@@ -5,8 +5,8 @@ export class Player {
     this.lane = 2;
     this.lanePositions = lanePositions;
     this.velocityY = 0;
-    this.gravity = -0.002;
-    this.jumpStrength = 0.08;
+    this.gravity = -0.0055;
+    this.jumpStrength = 0.13;
     this.onGround = true;
 
     const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
