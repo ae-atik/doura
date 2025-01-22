@@ -105,7 +105,7 @@ const ThreeScene = () => {
       enemiesRef.current.forEach((enemy, index) => {
         enemy.moveForward(currentSpeed);
         if (!hasShieldRef.current && enemy.checkCollision(player)) {
-          // setIsGameOver(true);
+          setIsGameOver(true);
           return;
         }
         if (enemy.isOutOfView()) {
