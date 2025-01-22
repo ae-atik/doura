@@ -16,7 +16,7 @@ export class Coin {
         let conflict = existingObjects.some(
           (obj) =>
             obj.mesh.position.x === lanePositions[lane] &&
-            Math.abs(obj.mesh.position.z - (-10)) < 5
+            Math.abs(obj.mesh.position.z - -10) < 5
         );
 
         if (!conflict) safePositionFound = true;
@@ -39,17 +39,49 @@ export class Coin {
     scene.add(this.mesh);
   }
 
-  moveForward(speedMultiplier = 1) {
-    this.mesh.position.z += 0.1 * speedMultiplier; // Adjust speed with multiplier
+  moveForward(speedMultiplier = 1, hasMagnet, player) {
+    // Standard forward movement
+    this.mesh.position.z += 0.1 * speedMultiplier;
+
+    // Magnet logic: Pull coin toward player if magnet is active
+    if (hasMagnet && player && player.mesh) {
+      console.log(`magnet on`);
+      const dx = player.mesh.position.x - this.mesh.position.x;
+      const dz = player.mesh.position.z - this.mesh.position.z;
+      const distance = Math.sqrt(dx * dx + dz * dz);
+
+      if (distance === 0) return false; // Prevent division by zero
+
+      // Calculate normalized direction vector
+      const directionX = dx / distance;
+      const directionZ = dz / distance;
+
+      // Increase for a stronger pull
+      const attractionSpeed = 0.2;
+
+      // Move coin closer to player
+      if(distance<4) {
+        this.mesh.position.x += directionX * attractionSpeed;
+        this.mesh.position.z += directionZ * attractionSpeed;
+      }
+
+      // Check if the coin is close enough to be collected
+      if (distance < 1) {
+        return true; // Signal that the coin should be collected
+      }
+    }
+
+    // Rotate coin visually
     this.mesh.rotation.y += 0.1;
+    return false; // Coin is not yet collected
   }
-  
 
   isOutOfView() {
     return this.mesh.position.z > 5;
   }
 
   checkCollision(player) {
+    if (!player || !player.mesh) return false; // Ensure player.mesh exists
     return (
       Math.abs(this.mesh.position.x - player.mesh.position.x) < 0.6 &&
       Math.abs(this.mesh.position.z - player.mesh.position.z) < 0.6 &&

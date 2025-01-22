@@ -10,7 +10,7 @@ export default class BuffManager {
     activateBuff(buffType) {
       if (buffType === "magnet") {
         this.setHasMagnet(true);
-        setTimeout(() => this.setHasMagnet(false), 5000);
+        setTimeout(() => this.setHasMagnet(false), 8000);
       } else if (buffType === "shield") {
         this.setHasShield(true);
         setTimeout(() => this.setHasShield(false), 5000);

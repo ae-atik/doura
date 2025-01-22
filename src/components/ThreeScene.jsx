@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 // ThreeScene.jsx
 
 import { useEffect, useRef, useState } from "react";
@@ -16,8 +15,9 @@ const ThreeScene = () => {
   const [hasMagnet, setHasMagnet] = useState(false);
   const [hasShield, setHasShield] = useState(false); // Fixed incorrect useState declaration
 
-  // Add shield ref
+  // Add shield and magnet refs
   const hasShieldRef = useRef(false);
+  const hasMagnetRef = useRef(false);
 
   // Replace speedMultiplier state with a ref
   const speedMultiplier = useRef(1);
@@ -28,6 +28,11 @@ const ThreeScene = () => {
   const buffsRef = useRef([]);
   let player, gameManager;
   let animationFrameId;
+
+  // Sync hasMagnet state with hasMagnetRef
+  useEffect(() => {
+    hasMagnetRef.current = hasMagnet;
+  }, [hasMagnet]);
 
   useEffect(() => {
     // Initialize Scene and Camera
@@ -72,7 +77,7 @@ const ThreeScene = () => {
       setHasMagnet,
       (value) => {
         setHasShield(value);
-        hasShieldRef.current = value; // Update ref
+        hasShieldRef.current = value; // Update shield ref
       },
       setSpeedMultiplierFunc
     );
@@ -125,15 +130,15 @@ const ThreeScene = () => {
 
       // Update Coins
       coinsRef.current.forEach((coin, index) => {
-        coin.moveForward(currentSpeed);
-        if (
-          coin.checkCollision(player) ||
-          (hasMagnet && coin.mesh.position.z > player.mesh.position.z - 1)
-        ) {
+        const shouldCollect = coin.moveForward(currentSpeed, hasMagnetRef.current, player);
+
+        // Collect coin when it reaches the player
+        if (shouldCollect || coin.checkCollision(player)) {
           setCoinCount((prev) => prev + 1);
           coin.remove();
           coinsRef.current.splice(index, 1);
         }
+
         if (coin.isOutOfView()) {
           coin.remove();
           coinsRef.current.splice(index, 1);
@@ -157,7 +162,7 @@ const ThreeScene = () => {
       // Render the Scene
       renderer.render(scene, camera);
     };
-    
+
     // Start Animation
     animate();
 

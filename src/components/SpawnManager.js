@@ -35,7 +35,7 @@ export default class SpawnManager {
 
       // Spawn Buffs
       if (Math.random() < 1) {
-        const buffTypes = [ "magnet", "speed", "shield"];
+        const buffTypes = [ "magnet"];//, "speed", "shield"
         const buffType = buffTypes[Math.floor(Math.random() * buffTypes.length)];
 
         // Combine all existing objects to check for conflicts
