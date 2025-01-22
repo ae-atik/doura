@@ -57,7 +57,7 @@ export class Coin {
       const directionZ = dz / distance;
 
       // Increase for a stronger pull
-      const attractionSpeed = 0.2;
+      const attractionSpeed = 0.1;
 
       // Move coin closer to player
       if(distance<4) {
