@@ -1,5 +1,3 @@
-// ThreeScene.jsx
-
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import RoadManager from "./RoadManager";
@@ -7,19 +5,17 @@ import SpawnManager from "./SpawnManager";
 import BuffManager from "./BuffManager";
 import { Player } from "./Player";
 import { GameManager } from "./GameManager";
+import EnvironmentManager from "./EnvironmentManager"; // Import EnvironmentManager
 
 const ThreeScene = () => {
   const mountRef = useRef(null);
   const [isGameOver, setIsGameOver] = useState(false);
   const [coinCount, setCoinCount] = useState(0);
   const [hasMagnet, setHasMagnet] = useState(false);
-  const [hasShield, setHasShield] = useState(false); // Fixed incorrect useState declaration
+  const [hasShield, setHasShield] = useState(false);
 
-  // Add shield and magnet refs
   const hasShieldRef = useRef(false);
   const hasMagnetRef = useRef(false);
-
-  // Replace speedMultiplier state with a ref
   const speedMultiplier = useRef(1);
 
   const lanePositions = { 1: -1.5, 2: 0, 3: 1.5 };
@@ -29,13 +25,11 @@ const ThreeScene = () => {
   let player, gameManager;
   let animationFrameId;
 
-  // Sync hasMagnet state with hasMagnetRef
   useEffect(() => {
     hasMagnetRef.current = hasMagnet;
   }, [hasMagnet]);
 
   useEffect(() => {
-    // Initialize Scene and Camera
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
       75,
@@ -46,43 +40,40 @@ const ThreeScene = () => {
     camera.position.set(0, 3, 8);
     camera.lookAt(0, 3, 0);
 
-    // Initialize Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.shadowMap.enabled = true;
     renderer.setSize(window.innerWidth, window.innerHeight);
     mountRef.current.appendChild(renderer.domElement);
 
+    // Initialize Environment
+    const environmentManager = new EnvironmentManager(scene);
+
     // Initialize Managers
     const roadManager = new RoadManager(scene);
     roadManager.addLeftSide();
 
-    // Function to update speedMultiplier ref
     const setSpeedMultiplierFunc = (value) => {
       speedMultiplier.current = value;
     };
 
-    // Prevent swipe gestures from minimizing Telegram WebView
     const preventDefaultTouchActions = (event) => {
       event.preventDefault();
     };
 
-    // Add event listeners
     document.addEventListener("touchmove", preventDefaultTouchActions, { passive: false });
     document.addEventListener("gesturestart", preventDefaultTouchActions, { passive: false });
     document.addEventListener("gesturechange", preventDefaultTouchActions, { passive: false });
     document.addEventListener("gestureend", preventDefaultTouchActions, { passive: false });
 
-    // Initialize BuffManager with the speedMultiplier setter
     const buffManager = new BuffManager(
       setHasMagnet,
       (value) => {
         setHasShield(value);
-        hasShieldRef.current = value; // Update shield ref
+        hasShieldRef.current = value;
       },
       setSpeedMultiplierFunc
     );
 
-    // Initialize SpawnManager
     const spawnManager = new SpawnManager(
       scene,
       lanePositions,
@@ -91,22 +82,18 @@ const ThreeScene = () => {
       buffsRef
     );
 
-    // Add Lighting
     const light = new THREE.DirectionalLight(0xffffff, 1);
     light.position.set(0, 2, -1);
     scene.add(light, new THREE.AmbientLight(0xffffff, 0.5));
 
-    // Initialize Player and GameManager
     player = new Player(scene, lanePositions);
     gameManager = new GameManager(player, enemiesRef, setIsGameOver);
 
-    // Spawn Objects at Intervals
     const objectSpawnInterval = setInterval(
       () => spawnManager.spawnObjects(isGameOver),
       2000
     );
 
-    // Animation Loop
     const animate = () => {
       if (isGameOver) return;
       animationFrameId = requestAnimationFrame(animate);
@@ -117,9 +104,8 @@ const ThreeScene = () => {
 
       enemiesRef.current.forEach((enemy, index) => {
         enemy.moveForward(currentSpeed);
-        // Use ref for shield
         if (!hasShieldRef.current && enemy.checkCollision(player)) {
-          setIsGameOver(true);
+          // setIsGameOver(true);
           return;
         }
         if (enemy.isOutOfView()) {
@@ -128,24 +114,19 @@ const ThreeScene = () => {
         }
       });
 
-      // Update Coins
       coinsRef.current.forEach((coin, index) => {
         const shouldCollect = coin.moveForward(currentSpeed, hasMagnetRef.current, player);
-
-        // Collect coin when it reaches the player
         if (shouldCollect || coin.checkCollision(player)) {
           setCoinCount((prev) => prev + 1);
           coin.remove();
           coinsRef.current.splice(index, 1);
         }
-
         if (coin.isOutOfView()) {
           coin.remove();
           coinsRef.current.splice(index, 1);
         }
       });
 
-      // Update Buffs
       buffsRef.current.forEach((buff, index) => {
         buff.moveForward(currentSpeed);
         if (buff.checkCollision(player)) {
@@ -159,33 +140,28 @@ const ThreeScene = () => {
         }
       });
 
-      // Render the Scene
       renderer.render(scene, camera);
     };
 
-    // Start Animation
     animate();
 
-    // Cleanup on Unmount
     return () => {
       cancelAnimationFrame(animationFrameId);
       gameManager.cleanup();
       clearInterval(objectSpawnInterval);
       mountRef.current.removeChild(renderer.domElement);
 
-      // Remove event listeners
       document.removeEventListener("touchmove", preventDefaultTouchActions);
       document.removeEventListener("gesturestart", preventDefaultTouchActions);
       document.removeEventListener("gesturechange", preventDefaultTouchActions);
       document.removeEventListener("gestureend", preventDefaultTouchActions);
     };
-  }, [isGameOver]); // Removed hasShield from dependencies
+  }, [isGameOver]);
 
   return (
     <div>
       <div ref={mountRef} />
 
-      {/* Coin Counter */}
       <div
         style={{
           position: "absolute",
@@ -201,7 +177,6 @@ const ThreeScene = () => {
         Coins: {coinCount}
       </div>
 
-      {/* Game Over Screen */}
       {isGameOver && (
         <div
           style={{
