@@ -1,4 +1,7 @@
 body {
+  overscroll-behavior: contain; /* Prevent navigation gestures */
+  touch-action: none; /* Disable default swipe behavior */
+  user-select: none; /* Prevent text selection */
   margin: 0;
   background: #0c4a6e;
   overflow: hidden;

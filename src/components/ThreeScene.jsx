@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 // ThreeScene.jsx
 
 import { useEffect, useRef, useState } from "react";
@@ -13,7 +14,6 @@ const ThreeScene = () => {
   const [isGameOver, setIsGameOver] = useState(false);
   const [coinCount, setCoinCount] = useState(0);
   const [hasMagnet, setHasMagnet] = useState(false);
-  // eslint-disable-next-line no-unused-vars
   const [hasShield, setHasShield] = useState(false); // Fixed incorrect useState declaration
 
   // Add shield ref
@@ -55,6 +55,17 @@ const ThreeScene = () => {
     const setSpeedMultiplierFunc = (value) => {
       speedMultiplier.current = value;
     };
+
+    // Prevent swipe gestures from minimizing Telegram WebView
+    const preventDefaultTouchActions = (event) => {
+      event.preventDefault();
+    };
+
+    // Add event listeners
+    document.addEventListener("touchmove", preventDefaultTouchActions, { passive: false });
+    document.addEventListener("gesturestart", preventDefaultTouchActions, { passive: false });
+    document.addEventListener("gesturechange", preventDefaultTouchActions, { passive: false });
+    document.addEventListener("gestureend", preventDefaultTouchActions, { passive: false });
 
     // Initialize BuffManager with the speedMultiplier setter
     const buffManager = new BuffManager(
@@ -146,7 +157,7 @@ const ThreeScene = () => {
       // Render the Scene
       renderer.render(scene, camera);
     };
-
+    
     // Start Animation
     animate();
 
@@ -156,6 +167,12 @@ const ThreeScene = () => {
       gameManager.cleanup();
       clearInterval(objectSpawnInterval);
       mountRef.current.removeChild(renderer.domElement);
+
+      // Remove event listeners
+      document.removeEventListener("touchmove", preventDefaultTouchActions);
+      document.removeEventListener("gesturestart", preventDefaultTouchActions);
+      document.removeEventListener("gesturechange", preventDefaultTouchActions);
+      document.removeEventListener("gestureend", preventDefaultTouchActions);
     };
   }, [isGameOver]); // Removed hasShield from dependencies
 
