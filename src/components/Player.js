@@ -1,24 +1,64 @@
 // Player.js
 import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 export class Player {
   constructor(scene, lanePositions) {
     this.lane = 2;
     this.lanePositions = lanePositions;
     this.velocityY = 0;
-    this.gravity = -0.0055;
-    this.jumpStrength = 0.13;
+    this.gravity = -0.004;
+    this.jumpStrength = 0.1;
     this.onGround = true;
+    this.mixer = undefined;
+    this.model = undefined;
+    this.animations = undefined;
+    this.mesh = undefined; // Added for compatibility
+    this.clock = new THREE.Clock();
 
-    const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
-    const cubeMaterial = new THREE.MeshStandardMaterial({ color: "#00ff00" });
-    this.mesh = new THREE.Mesh(cubeGeometry, cubeMaterial);
-    this.mesh.castShadow = true;
-    this.mesh.position.set(0, 0, 2);
+    this.runAction = null;
+    this.jumpAction = null;
 
-    this.boundingBox = new THREE.Box3().setFromObject(this.mesh); // Add bounding box
+    // Initialize Bounding Box
+    this.boundingBox = new THREE.Box3();
 
-    scene.add(this.mesh);
+    // Load the bear model
+    const loader = new GLTFLoader();
+
+    loader.load(
+      "/assets/models/run.glb",
+      (gltf) => {
+        const model = gltf.scene;
+        this.animations = gltf.animations;
+        this.model = model;
+        this.mesh = model; // Assign model to mesh for compatibility
+        scene.add(model);
+        model.rotation.y = Math.PI; // Rotate model if necessary
+        model.position.z = 2.4;
+
+        // Optionally, scale the model to fit your game
+        // model.scale.set(1, 1, 1); // Adjust as needed
+
+        // Initialize Bounding Box once the model is loaded
+        this.boundingBox.setFromObject(this.model);
+
+        // Handle animations
+        if (gltf.animations.length > 0) {
+          this.mixer = new THREE.AnimationMixer(this.model);
+
+          // Play a specific animation (e.g., index 1)
+          this.runAction = this.mixer.clipAction(gltf.animations[1]);
+          this.runAction.setLoop(THREE.LoopRepeat);
+          this.runAction.reset();
+          this.runAction.play();
+          console.log("Playing animation:", gltf.animations[1].name);
+        }
+      },
+      undefined,
+      (error) => {
+        console.error("Error loading GLTF model:", error);
+      }
+    );
   }
 
   moveLeft() {
@@ -33,20 +73,53 @@ export class Player {
     if (this.onGround) {
       this.velocityY = this.jumpStrength;
       this.onGround = false;
+      this.jumpAction = this.mixer.clipAction(this.animations[0]);
+      
+      this.runAction.fadeOut(0.2);
+      this.jumpAction.reset();
+      this.jumpAction.fadeIn(.02);
+      this.jumpAction.play();
+      this.jumpAction.setLoop(THREE.LoopOnce, 3);
+      this.jumpAction.play();
+      
+      
+
     }
   }
 
   update() {
-    this.velocityY += this.gravity;
-    this.mesh.position.y += this.velocityY;
+    // Only proceed if the model is loaded
+    if (!this.model) return;
 
-    if (this.mesh.position.y <= 0) {
-      this.mesh.position.y = 0;
+    // Apply gravity
+    this.velocityY += this.gravity;
+    this.model.position.y += this.velocityY;
+
+    // Ground collision
+    if (this.model.position.y <= 0) {
+      this.model.position.y = 0;
       this.velocityY = 0;
       this.onGround = true;
+      if (this.runAction && this.jumpAction) {
+
+        this.runAction.reset();
+        // this.runAction.fadeIn(0.2);
+        this.runAction.play();
+        this.jumpAction = undefined;
+        console.log("Resuming run animation:", this.runAction._clip.name);
+      }
     }
 
-    this.mesh.position.x = this.lanePositions[this.lane];
-    this.boundingBox.setFromObject(this.mesh); // Update bounding box every frame
+    // Update lane position
+    this.model.position.x = this.lanePositions[this.lane];
+
+    // Update bounding box
+    this.boundingBox.setFromObject(this.model);
+
+    // Update animations
+    if (this.mixer) {
+      const delta = this.clock.getDelta();
+      this.mixer.update(delta);
+    }
   }
 }

@@ -45,7 +45,7 @@ export default class TreeManager {
 
     const position = leafGeometry.attributes.position;
     for (let i = 0; i < position.count; i++) {
-      const offset = (Math.random() - 0.5) * 0.3; // Random displacement for jagged effect
+      const offset = (Math.random()- 0.5) * 0.5; // Random displacement for jagged effect
       position.setXYZ(
         i,
         position.getX(i) + offset,

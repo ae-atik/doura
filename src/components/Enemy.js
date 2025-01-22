@@ -15,13 +15,15 @@ export class Enemy {
     this.mesh.position.set(this.lanePositions[enemyLane], 0, -20);
 
     this.boundingBox = new THREE.Box3().setFromObject(this.mesh); // Add bounding box
+    this.shrinkBoundingBox(0.1);
 
     scene.add(this.mesh);
   }
 
   moveForward(speedMultiplier = 1) {
-    this.mesh.position.z += 0.1 * speedMultiplier; // Adjust speed with multiplier
+    this.mesh.position.z += 0.12 * speedMultiplier; // Adjust speed with multiplier
     this.boundingBox.setFromObject(this.mesh);
+    this.shrinkBoundingBox(0.1);
   }
   
 
@@ -35,5 +37,18 @@ export class Enemy {
 
   remove() {
     this.scene.remove(this.mesh);
+  }
+
+  // Function to shrink bounding box
+  shrinkBoundingBox(scaleFactor = 0.1) {
+    const size = new THREE.Vector3();
+    const center = new THREE.Vector3();
+
+    this.boundingBox.getSize(size);
+    this.boundingBox.getCenter(center);
+
+    size.multiplyScalar(scaleFactor);
+
+    this.boundingBox.setFromCenterAndSize(center, size);
   }
 }
