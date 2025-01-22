@@ -6,6 +6,7 @@ import BuffManager from "./BuffManager";
 import { Player } from "./Player";
 import { GameManager } from "./GameManager";
 import EnvironmentManager from "./EnvironmentManager"; // Import EnvironmentManager
+import TreeManager from "./TreeManager";
 
 const ThreeScene = () => {
   const mountRef = useRef(null);
@@ -22,7 +23,8 @@ const ThreeScene = () => {
   const enemiesRef = useRef([]);
   const coinsRef = useRef([]);
   const buffsRef = useRef([]);
-  let player, gameManager;
+  const treesRef = useRef([]);
+  let player, gameManager, treeManager;
   let animationFrameId;
 
   useEffect(() => {
@@ -51,6 +53,8 @@ const ThreeScene = () => {
     // Initialize Managers
     const roadManager = new RoadManager(scene);
     roadManager.addLeftSide();
+
+    treeManager = new TreeManager(scene, speedMultiplier, treesRef); // Initialize TreeManager
 
     const setSpeedMultiplierFunc = (value) => {
       speedMultiplier.current = value;
@@ -89,16 +93,24 @@ const ThreeScene = () => {
     player = new Player(scene, lanePositions);
     gameManager = new GameManager(player, enemiesRef, setIsGameOver);
 
-    const objectSpawnInterval = setInterval(
-      () => spawnManager.spawnObjects(isGameOver),
-      2000
-    );
+    const objectSpawnInterval = setInterval(() => {
+      spawnManager.spawnObjects(isGameOver);
+      
+    }, 2000);
+
+    const treeSpawnInterval = setInterval(() => {
+      if (Math.random() < 1) treeManager.spawnTree(); // Spawn trees randomly
+    }, 400); // Reduce interval time for more frequent tree spawning
+    
+
+    
 
     const animate = () => {
       if (isGameOver) return;
       animationFrameId = requestAnimationFrame(animate);
 
       player.update();
+      treeManager.updateTrees(); // Update tree positions
 
       const currentSpeed = speedMultiplier.current;
 
@@ -149,6 +161,7 @@ const ThreeScene = () => {
       cancelAnimationFrame(animationFrameId);
       gameManager.cleanup();
       clearInterval(objectSpawnInterval);
+      clearInterval(treeSpawnInterval);
       mountRef.current.removeChild(renderer.domElement);
 
       document.removeEventListener("touchmove", preventDefaultTouchActions);
