@@ -66,7 +66,7 @@ export default class RoadManager {
   }
 
   moveForward(speedMultiplier = 1) {
-    this.ground.position.z += 0.12 * speedMultiplier;
+    this.ground.position.z += 0.2 * speedMultiplier;
     // Removed rotation effect
   }
   isOutOfView() {

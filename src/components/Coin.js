@@ -41,7 +41,7 @@ export class Coin {
 
   moveForward(speedMultiplier = 1, hasMagnet, player) {
     // Standard forward movement
-    this.mesh.position.z += 0.12 * speedMultiplier;
+    this.mesh.position.z += 0.2 * speedMultiplier;
 
     // Magnet logic: Pull coin toward player if magnet is active
     if (hasMagnet && player && player.mesh) {

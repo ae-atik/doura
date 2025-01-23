@@ -72,7 +72,7 @@ export default class Buff {
   }
 
   moveForward(speedMultiplier = 1) {
-    this.mesh.position.z += 0.12 * speedMultiplier;
+    this.mesh.position.z += 0.2 * speedMultiplier;
     // Removed rotation effect
   }
 

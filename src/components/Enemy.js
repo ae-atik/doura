@@ -80,7 +80,7 @@ export class Enemy {
   }
 
   moveForward(speedMultiplier = 1) {
-    const moveDistance = 0.12 * speedMultiplier;
+    const moveDistance = 0.2 * speedMultiplier;
     // Move the enemy mesh forward
     this.mesh.position.z += moveDistance;
 
