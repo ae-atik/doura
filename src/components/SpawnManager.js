@@ -1,4 +1,3 @@
-// SpawnManager.js
 import { Coin } from "./Coin";
 import Buff from "./Buff";
 import { Enemy } from "./Enemy";
@@ -35,7 +34,7 @@ export default class SpawnManager {
 
       // Spawn Buffs
       if (Math.random() < 0.5) {
-        const buffTypes = [ "magnet", "speed", "shield"];
+        const buffTypes = ["magnet", "speed", "shield"];
         const buffType = buffTypes[Math.floor(Math.random() * buffTypes.length)];
 
         // Combine all existing objects to check for conflicts
@@ -45,20 +44,25 @@ export default class SpawnManager {
           ...this.buffsRef.current,
         ];
 
-        // Determine the index for z-position offset
-        const currentBuffsInLane = this.buffsRef.current.filter(
-          (buff) => buff.type === buffType
-        ).length;
-
-        const buff = new Buff(
-          this.scene,
-          this.lanePositions,
-          buffType,
-          existingObjects, // Pass existing objects
-          null, // Let Buff.js choose a safe lane
-          currentBuffsInLane // Offset z-position
+        // Ensure buffs spawn in a valid lane
+        const availableLanes = [1, 2, 3].filter(
+          (lane) => !this.buffsRef.current.some((buff) => buff.lane === lane)
         );
-        this.buffsRef.current.push(buff);
+
+        if (availableLanes.length > 0) {
+          const selectedLane = availableLanes[Math.floor(Math.random() * availableLanes.length)];
+
+          const buff = new Buff(
+            this.scene,
+            this.lanePositions,
+            buffType,
+            existingObjects,
+            selectedLane, // Assign a valid lane
+            0 // Reset z-position offset
+          );
+
+          this.buffsRef.current.push(buff);
+        }
       }
     }
   }
