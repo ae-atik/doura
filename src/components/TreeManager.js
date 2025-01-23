@@ -1,10 +1,18 @@
 import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 export default class TreeManager {
   constructor(scene, speedMultiplierRef) {
     this.scene = scene;
     this.speedMultiplierRef = speedMultiplierRef; // Reference to control movement speed
     this.trees = [];
+    this.loader = new GLTFLoader();
+
+    // Tree models list
+    this.treeModels = [
+      "/assets/models/tree.glb",
+      "/assets/models/tree2.glb",
+    ];
   }
 
   spawnTree() {
@@ -19,70 +27,47 @@ export default class TreeManager {
         ? Math.random() * (leftMax - leftMin) + leftMin // Random left position
         : Math.random() * (rightMax - rightMin) + rightMin; // Random right position
 
-    // Create trunk
-    const trunkGeometry = new THREE.CylinderGeometry(
-      0.2,
-      0.2,
-      Math.random() * 3 + 3,
-      6
+    // Randomly select a tree model
+    const chosenTreeModel =
+      this.treeModels[Math.floor(Math.random() * this.treeModels.length)];
+
+    this.loader.load(
+      chosenTreeModel,
+      (gltf) => {
+        const tree = gltf.scene;
+
+        // Adjust scale if necessary
+        tree.scale.set(1.5, 1.5, 1.5);
+
+        // Set initial position
+        tree.position.set(treeX, -3, -30);
+
+        // Enable shadows
+        tree.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
+
+        // Add to scene
+        this.scene.add(tree);
+        this.trees.push(tree);
+      },
+      undefined,
+      (error) => {
+        console.error("Error loading tree model:", error);
+      }
     );
-    const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
-    const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
-
-    // Create leaves (random shape: sphere or cone)
-    const textureLoader = new THREE.TextureLoader();
-    const leafTexture = textureLoader.load("/assets/textures/grass.jpg"); // Ensure this path is correct
-    
-
-    const leafGeometry =
-      Math.random() > 0.5
-        ? new THREE.SphereGeometry(Math.random() * 1 + 1.5, 10, 10)
-        : new THREE.ConeGeometry(
-            Math.random() * 0.9 + 2,
-            Math.random() * 2 + 4,
-            10
-          );
-
-    const position = leafGeometry.attributes.position;
-    for (let i = 0; i < position.count; i++) {
-      const offset = (Math.random()- 0.5) * 0.5; // Random displacement for jagged effect
-      position.setXYZ(
-        i,
-        position.getX(i) + offset,
-        position.getY(i) + offset,
-        position.getZ(i) + offset
-      );
-    }
-    position.needsUpdate = true; // Ensure changes take effect
-
-    const leafMaterial = new THREE.MeshStandardMaterial({
-      map: leafTexture, // Apply texture
-      transparent: true,
-    });
-
-    const leaves = new THREE.Mesh(leafGeometry, leafMaterial);
-    // Set initial positions
-    trunk.position.set(treeX, -2, -30);
-    leaves.position.set(
-      treeX,
-      trunk.position.y + trunkGeometry.parameters.height / 2 + 1,
-      -30
-    );
-
-    // Add to scene
-    this.scene.add(trunk, leaves);
-
-    this.trees.push({ trunk, leaves });
   }
 
   updateTrees() {
     this.trees.forEach((tree, index) => {
-      const speed = this.speedMultiplierRef.current * 0.1;
-      tree.trunk.position.z += speed;
-      tree.leaves.position.z += speed;
+      const speed = this.speedMultiplierRef.current * 0.3;
+      tree.position.z += speed;
 
-      if (tree.trunk.position.z > 5) {
-        this.scene.remove(tree.trunk, tree.leaves);
+      if (tree.position.z > 5) {
+        this.scene.remove(tree);
         this.trees.splice(index, 1);
       }
     });
