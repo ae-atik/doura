@@ -8,7 +8,7 @@ export class Player {
     this.lanePositions = lanePositions;
     this.velocityY = 0;
     this.gravity = -0.004;
-    this.jumpStrength = 0.1;
+    this.jumpStrength = 0.097;
     this.onGround = true;
     this.mixer = undefined;
     this.model = undefined;
@@ -81,8 +81,6 @@ export class Player {
       this.jumpAction.play();
       this.jumpAction.setLoop(THREE.LoopOnce, 3);
       this.jumpAction.play();
-      
-      
 
     }
   }

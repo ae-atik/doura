@@ -57,7 +57,7 @@ export class Coin {
       const directionZ = dz / distance;
 
       // Increase for a stronger pull
-      const attractionSpeed = 0.1;
+      const attractionSpeed = 0.5;
 
       // Move coin closer to player
       if(distance<4) {
@@ -66,7 +66,7 @@ export class Coin {
       }
 
       // Check if the coin is close enough to be collected
-      if (distance < 1) {
+      if (distance < 2) {
         return true; // Signal that the coin should be collected
       }
     }

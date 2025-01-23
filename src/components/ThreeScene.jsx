@@ -48,7 +48,8 @@ const ThreeScene = () => {
     mountRef.current.appendChild(renderer.domElement);
 
     // Initialize Environment
-    const environmentManager = new EnvironmentManager(scene);
+    const environmentManager = new EnvironmentManager(scene, speedMultiplier);
+    // environmentManager.updateGround()
 
     // Initialize Managers
     const roadManager = new RoadManager(scene);
@@ -69,6 +70,8 @@ const ThreeScene = () => {
     document.addEventListener("gesturechange", preventDefaultTouchActions, { passive: false });
     document.addEventListener("gestureend", preventDefaultTouchActions, { passive: false });
 
+
+
     const buffManager = new BuffManager(
       setHasMagnet,
       (value) => {
@@ -88,7 +91,7 @@ const ThreeScene = () => {
 
     const light = new THREE.DirectionalLight(0xffffff, 1);
     light.position.set(0, 2, -1);
-    scene.add(light, new THREE.AmbientLight(0xffffff, 0.5));
+    scene.add(light, new THREE.AmbientLight(0xffffff, 2));
 
     player = new Player(scene, lanePositions);
     gameManager = new GameManager(player, enemiesRef, setIsGameOver);
@@ -110,7 +113,9 @@ const ThreeScene = () => {
       animationFrameId = requestAnimationFrame(animate);
 
       player.update();
+      environmentManager.updateGround()
       treeManager.updateTrees(); // Update tree positions
+      roadManager.moveForward();
 
       const currentSpeed = speedMultiplier.current;
 
