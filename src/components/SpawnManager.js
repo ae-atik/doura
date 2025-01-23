@@ -11,10 +11,41 @@ export default class SpawnManager {
     this.buffsRef = buffsRef;
   }
 
+  // Helper function to prevent overlap by shifting new objects if needed
+  avoidOverlap(newObject, existingObjects, minDistance = 2) {
+    if (!newObject || !newObject.mesh || !newObject.mesh.position) return;
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    // Simple Z-based check to shift the new object if it's too close
+    while (attempts < maxAttempts) {
+      let overlapping = false;
+      for (const obj of existingObjects) {
+        if (obj && obj.mesh && obj.mesh.position) {
+          const dist = Math.abs(obj.mesh.position.z - newObject.mesh.position.z);
+          // If within minDistance, shift newObject further back
+          if (dist < minDistance) {
+            newObject.mesh.position.z -= minDistance;
+            overlapping = true;
+            break;
+          }
+        }
+      }
+      if (!overlapping) break;
+      attempts++;
+    }
+  }
+
   spawnObjects(isGameOver) {
     if (!isGameOver) {
       // Spawn Enemy
       const newEnemy = new Enemy(this.scene, this.lanePositions);
+      // Prevent overlap with existing coins, buffs, or enemies
+      this.avoidOverlap(newEnemy, [
+        ...this.enemiesRef.current,
+        ...this.coinsRef.current,
+        ...this.buffsRef.current,
+      ]);
       this.enemiesRef.current.push(newEnemy);
 
       // Spawn Coins
@@ -28,12 +59,18 @@ export default class SpawnManager {
           coinLane,
           i
         );
+        // Prevent overlap with existing enemies, coins, or buffs
+        this.avoidOverlap(coin, [
+          ...this.enemiesRef.current,
+          ...this.coinsRef.current,
+          ...this.buffsRef.current,
+        ]);
         coins.push(coin);
       }
       this.coinsRef.current.push(...coins);
 
       // Spawn Buffs
-      if (Math.random() < 0.5) {
+      if (Math.random() < 0.8) {
         const buffTypes = ["magnet", "speed", "shield"];
         const buffType = buffTypes[Math.floor(Math.random() * buffTypes.length)];
 
@@ -61,6 +98,8 @@ export default class SpawnManager {
             0 // Reset z-position offset
           );
 
+          // Prevent overlap with existing enemies, coins, or buffs
+          this.avoidOverlap(buff, existingObjects);
           this.buffsRef.current.push(buff);
         }
       }
