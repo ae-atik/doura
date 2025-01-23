@@ -4,6 +4,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 export class Player {
   constructor(scene, lanePositions) {
+    this.scene = scene;
     this.lane = 2;
     this.lanePositions = lanePositions;
     this.velocityY = 0;
@@ -41,6 +42,7 @@ export class Player {
 
         // Initialize Bounding Box once the model is loaded
         this.boundingBox.setFromObject(this.model);
+        this.shrinkBoundingBox(0.1); // Shrink the bounding box by 50%
 
         // Handle animations
         if (gltf.animations.length > 0) {
@@ -61,6 +63,19 @@ export class Player {
     );
   }
 
+  // Method to shrink the bounding box by a given scale factor
+  shrinkBoundingBox(scaleFactor = 0.5) {
+    if (this.boundingBox) {
+      const size = new THREE.Vector3();
+      const center = new THREE.Vector3();
+      this.boundingBox.getSize(size);
+      this.boundingBox.getCenter(center);
+
+      size.multiplyScalar(scaleFactor);
+      this.boundingBox.setFromCenterAndSize(center, size);
+    }
+  }
+
   moveLeft() {
     if (this.lane > 1) this.lane--;
   }
@@ -74,14 +89,12 @@ export class Player {
       this.velocityY = this.jumpStrength;
       this.onGround = false;
       this.jumpAction = this.mixer.clipAction(this.animations[0]);
-      
+
       this.runAction.fadeOut(0.2);
       this.jumpAction.reset();
-      this.jumpAction.fadeIn(.02);
+      this.jumpAction.fadeIn(0.2);
       this.jumpAction.play();
-      this.jumpAction.setLoop(THREE.LoopOnce, 3);
-      this.jumpAction.play();
-
+      this.jumpAction.setLoop(THREE.LoopOnce, 1);
     }
   }
 
@@ -99,9 +112,8 @@ export class Player {
       this.velocityY = 0;
       this.onGround = true;
       if (this.runAction && this.jumpAction) {
-
         this.runAction.reset();
-        // this.runAction.fadeIn(0.2);
+        this.runAction.fadeIn(0.2);
         this.runAction.play();
         this.jumpAction = undefined;
         console.log("Resuming run animation:", this.runAction._clip.name);
@@ -113,6 +125,7 @@ export class Player {
 
     // Update bounding box
     this.boundingBox.setFromObject(this.model);
+    this.shrinkBoundingBox(0.06); // Shrink the bounding box by 50%
 
     // Update animations
     if (this.mixer) {

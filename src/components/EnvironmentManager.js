@@ -80,11 +80,12 @@ export default class EnvironmentManager {
           
           // Scroll mud texture downwards based on time
           vec2 mudUV = vec2(vUv.x, vUv.y + time * speed);
+          vec2 grassUV = vec2(vUv.x, vUv.y + time * speed);
 
           // Smooth blending from mud to grass
           float blendFactor = smoothstep(4.0, 8.0, abs(vPosition.x)); 
 
-          vec4 grassColor = texture2D(grassTexture, vUv);
+          vec4 grassColor = texture2D(grassTexture, grassUV);
           vec4 mudColor = texture2D(mudTexture, mudUV);
 
           gl_FragColor = mix(mudColor, grassColor, blendFactor);
@@ -99,6 +100,6 @@ export default class EnvironmentManager {
   }
 
   updateGround() {
-    this.groundMaterial.uniforms.time.value += this.speedMultiplierRef.current * 0.1; // Moves road texture based on speed
+    this.groundMaterial.uniforms.time.value += this.speedMultiplierRef.current * 0.3; // Moves road texture based on speed
   }
 }

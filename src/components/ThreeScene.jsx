@@ -1,3 +1,4 @@
+// ThreeScene.js
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import RoadManager from "./RoadManager";
@@ -7,6 +8,7 @@ import { Player } from "./Player";
 import { GameManager } from "./GameManager";
 import EnvironmentManager from "./EnvironmentManager"; // Import EnvironmentManager
 import TreeManager from "./TreeManager";
+import { Enemy } from "./Enemy"; // Import Enemy
 
 const ThreeScene = () => {
   const mountRef = useRef(null);
@@ -70,8 +72,6 @@ const ThreeScene = () => {
     document.addEventListener("gesturechange", preventDefaultTouchActions, { passive: false });
     document.addEventListener("gestureend", preventDefaultTouchActions, { passive: false });
 
-
-
     const buffManager = new BuffManager(
       setHasMagnet,
       (value) => {
@@ -90,30 +90,38 @@ const ThreeScene = () => {
     );
 
     const light = new THREE.DirectionalLight(0xffffff, 1);
-    light.position.set(0, 2, -1);
-    scene.add(light, new THREE.AmbientLight(0xffffff, 2));
+    light.position.set(0, 10, -10); // Adjust position for better shadow projection
+    light.castShadow = true; // Enable shadow casting for the light
+
+    // Configure shadow properties for better quality
+    light.shadow.mapSize.width = 1024;
+    light.shadow.mapSize.height = 1024;
+    light.shadow.camera.near = 0.5;
+    light.shadow.camera.far = 50;
+    light.shadow.camera.left = -10;
+    light.shadow.camera.right = 10;
+    light.shadow.camera.top = 10;
+    light.shadow.camera.bottom = -10;
+
+    scene.add(light, new THREE.AmbientLight(0xffffff, 2)); // Reduced ambient light intensity
 
     player = new Player(scene, lanePositions);
     gameManager = new GameManager(player, enemiesRef, setIsGameOver);
 
     const objectSpawnInterval = setInterval(() => {
       spawnManager.spawnObjects(isGameOver);
-      
     }, 2000);
 
     const treeSpawnInterval = setInterval(() => {
       if (Math.random() < 1) treeManager.spawnTree(); // Spawn trees randomly
     }, 400); // Reduce interval time for more frequent tree spawning
-    
-
-    
 
     const animate = () => {
       if (isGameOver) return;
       animationFrameId = requestAnimationFrame(animate);
 
       player.update();
-      environmentManager.updateGround()
+      environmentManager.updateGround();
       treeManager.updateTrees(); // Update tree positions
       roadManager.moveForward();
 
