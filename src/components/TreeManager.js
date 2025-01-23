@@ -2,73 +2,129 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 export default class TreeManager {
-  constructor(scene, speedMultiplierRef) {
+  constructor(scene, speedMultiplierRef, treesRef, preloadedTrees) {
     this.scene = scene;
-    this.speedMultiplierRef = speedMultiplierRef; // Reference to control movement speed
-    this.trees = [];
+    this.speedMultiplierRef = speedMultiplierRef;
+    this.treesRef = treesRef; // Reference to trees array
     this.loader = new GLTFLoader();
+    this.preloadedTrees = [];
+    this.isPreloaded = false; // Flag to track preloading completion
 
     // Tree models list
     this.treeModels = [
-      "/assets/models/tree.glb",
+      "/assets/models/tree1.glb",
       "/assets/models/tree2.glb",
     ];
+
+    // Preload trees before the game starts
+    this.preloadTrees();
+  }
+
+  preloadTrees() {
+    let loadedCount = 0;
+
+    this.treeModels.forEach((treeModel, index) => {
+      this.loader.load(
+        treeModel,
+        (gltf) => {
+          const tree = gltf.scene;
+          tree.scale.set(1, 1, 1);
+
+          // Enable shadows
+          tree.traverse((child) => {
+            if (child.isMesh) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+            }
+          });
+
+          this.preloadedTrees[index] = tree;
+          loadedCount++;
+
+          // Ensure all trees are loaded before proceeding
+          if (loadedCount === this.treeModels.length) {
+            this.isPreloaded = true;
+            console.log("All tree models preloaded.");
+            this.initialTreePlacement(); // ✅ Spawn trees **before** the game starts
+          }
+        },
+        undefined,
+        (error) => {
+          console.error("Error preloading tree model:", error);
+        }
+      );
+    });
+  }
+
+  initialTreePlacement() {
+    if (!this.isPreloaded || this.preloadedTrees.length === 0) return;
+
+    // Create an **initial batch** of trees so the player never sees empty space
+    const treeBatch = 5; // Spawn a large batch of trees initially
+    for (let i = 0; i < treeBatch; i++) {
+      const zOffset = 2 - i * 10; // ✅ Places trees **way back** to create depth
+
+      this.createTreePair(zOffset);
+    }
   }
 
   spawnTree() {
-    // Define safe tree spawn positions (outside player lanes)
+    // Ensure trees are preloaded before spawning
+    if (!this.isPreloaded || this.preloadedTrees.length === 0) {
+      console.warn("Trees not preloaded yet. Skipping spawn.");
+      return;
+    }
+
+    // ✅ Adjust Z-position so trees spawn way further back to avoid pop-in
+    const zOffset = -40; // Spawn far back so it feels like trees existed before
+    this.createTreePair(zOffset);
+  }
+
+  createTreePair(zOffset) {
     const leftMin = -7,
       leftMax = -5; // Randomized left range
     const rightMin = 5,
       rightMax = 7; // Randomized right range
 
-    const treeX =
-      Math.random() > 0.5
-        ? Math.random() * (leftMax - leftMin) + leftMin // Random left position
-        : Math.random() * (rightMax - rightMin) + rightMin; // Random right position
+    // Select a random preloaded tree model for each side
+    const leftTreeIndex = Math.floor(Math.random() * this.preloadedTrees.length);
+    const rightTreeIndex = Math.floor(Math.random() * this.preloadedTrees.length);
 
-    // Randomly select a tree model
-    const chosenTreeModel =
-      this.treeModels[Math.floor(Math.random() * this.treeModels.length)];
+    if (!this.preloadedTrees[leftTreeIndex] || !this.preloadedTrees[rightTreeIndex]) {
+      console.warn("Skipping tree spawn due to undefined preloaded tree.");
+      return;
+    }
 
-    this.loader.load(
-      chosenTreeModel,
-      (gltf) => {
-        const tree = gltf.scene;
+    const leftTree = this.preloadedTrees[leftTreeIndex].clone();
+    const rightTree = this.preloadedTrees[rightTreeIndex].clone();
 
-        // Adjust scale if necessary
-        tree.scale.set(1.5, 1.5, 1.5);
-
-        // Set initial position
-        tree.position.set(treeX, -3, -30);
-
-        // Enable shadows
-        tree.traverse((child) => {
-          if (child.isMesh) {
-            child.castShadow = true;
-            child.receiveShadow = true;
-          }
-        });
-
-        // Add to scene
-        this.scene.add(tree);
-        this.trees.push(tree);
-      },
-      undefined,
-      (error) => {
-        console.error("Error loading tree model:", error);
-      }
+    // Assign positions with **deep Z-depth** to create depth effect
+    leftTree.position.set(
+      Math.random() * (leftMax - leftMin) + leftMin,
+      -3,
+      zOffset + Math.random() * 5
     );
+    rightTree.position.set(
+      Math.random() * (rightMax - rightMin) + rightMin,
+      -3,
+      zOffset + Math.random() * 5
+    );
+
+    // Add trees to the scene
+    this.scene.add(leftTree, rightTree);
+
+    // Correctly update treesRef.current (since it's a ref)
+    this.treesRef.current.push(leftTree, rightTree);
   }
 
   updateTrees() {
-    this.trees.forEach((tree, index) => {
+    this.treesRef.current.forEach((tree, index) => {
       const speed = this.speedMultiplierRef.current * 0.3;
       tree.position.z += speed;
 
       if (tree.position.z > 5) {
         this.scene.remove(tree);
-        this.trees.splice(index, 1);
+        this.treesRef.current.splice(index, 1);
       }
     });
   }

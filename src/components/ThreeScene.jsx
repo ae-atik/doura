@@ -10,7 +10,7 @@ import EnvironmentManager from "./EnvironmentManager"; // Import EnvironmentMana
 import TreeManager from "./TreeManager";
 import { Enemy } from "./Enemy"; // Import Enemy
 
-const ThreeScene = () => {
+const ThreeScene = ({preloadedTrees}) => {
   const mountRef = useRef(null);
   const [isGameOver, setIsGameOver] = useState(false);
   const [coinCount, setCoinCount] = useState(0);
@@ -57,7 +57,7 @@ const ThreeScene = () => {
     const roadManager = new RoadManager(scene);
     roadManager.addLeftSide();
 
-    treeManager = new TreeManager(scene, speedMultiplier, treesRef); // Initialize TreeManager
+    treeManager = new TreeManager(scene, speedMultiplier, treesRef, preloadedTrees); // Initialize TreeManager
 
     const setSpeedMultiplierFunc = (value) => {
       speedMultiplier.current = value;
