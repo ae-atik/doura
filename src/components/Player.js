@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 export class Player {
-  constructor(scene, lanePositions) {
+  constructor(scene, lanePositions, musicManager) {
     this.scene = scene;
     this.lane = 2;
     this.lanePositions = lanePositions;
@@ -22,6 +22,8 @@ export class Player {
 
     // Initialize Bounding Box
     this.boundingBox = new THREE.Box3();
+
+    this.musicManager = musicManager;
 
     // Load the bear model
     const loader = new GLTFLoader();
@@ -89,12 +91,13 @@ export class Player {
       this.velocityY = this.jumpStrength;
       this.onGround = false;
       this.jumpAction = this.mixer.clipAction(this.animations[0]);
-
+      this.musicManager.playSoundEffect('jump');
       this.runAction.fadeOut(0.2);
       this.jumpAction.reset();
       this.jumpAction.fadeIn(0.2);
       this.jumpAction.play();
       this.jumpAction.setLoop(THREE.LoopOnce, 1);
+
     }
   }
 

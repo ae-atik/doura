@@ -10,7 +10,7 @@ import EnvironmentManager from "./EnvironmentManager"; // Import EnvironmentMana
 import TreeManager from "./TreeManager";
 import { Enemy } from "./Enemy"; // Import Enemy
 
-const ThreeScene = ({preloadedTrees}) => {
+const ThreeScene = ({preloadedTrees, musicManager}) => {
   const mountRef = useRef(null);
   const [isGameOver, setIsGameOver] = useState(false);
   const [coinCount, setCoinCount] = useState(0);
@@ -97,7 +97,7 @@ const ThreeScene = ({preloadedTrees}) => {
     light.shadow.mapSize.width = 1024;
     light.shadow.mapSize.height = 1024;
     light.shadow.camera.near = 0.5;
-    light.shadow.camera.far = 50;
+    light.shadow.camera.far = 20;
     light.shadow.camera.left = -10;
     light.shadow.camera.right = 10;
     light.shadow.camera.top = 10;
@@ -105,7 +105,7 @@ const ThreeScene = ({preloadedTrees}) => {
 
     scene.add(light, new THREE.AmbientLight(0xffffff, 2)); // Reduced ambient light intensity
 
-    player = new Player(scene, lanePositions);
+    player = new Player(scene, lanePositions, musicManager);
     gameManager = new GameManager(player, enemiesRef, setIsGameOver);
 
     const objectSpawnInterval = setInterval(() => {
@@ -142,6 +142,7 @@ const ThreeScene = ({preloadedTrees}) => {
       coinsRef.current.forEach((coin, index) => {
         const shouldCollect = coin.moveForward(currentSpeed, hasMagnetRef.current, player);
         if (shouldCollect || coin.checkCollision(player)) {
+          musicManager.playSoundEffect('coinPickup')
           setCoinCount((prev) => prev + 1);
           coin.remove();
           coinsRef.current.splice(index, 1);

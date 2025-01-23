@@ -43,6 +43,14 @@ export class Enemy {
           if (child.isMesh) {
             child.castShadow = true;
             child.receiveShadow = false; // Disable receiving shadows to allow shadows on the road
+            if(child.material){
+              child.material.shadowSide = THREE.DoubleSide;
+              child.material = new THREE.MeshStandardMaterial({
+                ...child.material,
+                shadowMapSide: THREE.DoubleSide,
+                aoMapIntensity: 1.0
+              })
+            }
           }
         });
 
