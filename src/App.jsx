@@ -1,52 +1,62 @@
-import React, { useState, useEffect } from "react";
-import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader.js";
+import React, { useState } from "react";
 import ThreeScene from "./components/ThreeScene";
 import StartScreen from "./components/StartScreen";
 import LoadingScreen from "./components/LoadingScreen";
+import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader.js";
 import * as THREE from "three";
 
 const App = () => {
   const [gameState, setGameState] = useState("start");
   const [progress, setProgress] = useState(0);
-  const [isFullyLoaded, setIsFullyLoaded] = useState(false);
 
-  const preloadAssets = () => {
+  const preloadAssets = async () => {
     const manager = new THREE.LoadingManager();
-  
-    manager.onProgress = (url, itemsLoaded, itemsTotal) => {
-      const percentage = (itemsLoaded / itemsTotal) * 100;
-      setProgress(isNaN(percentage) ? 0 : percentage);
-    };
-  
-    manager.onLoad = () => {
-      setTimeout(() => setIsFullyLoaded(true), 500);
-    };
-  
-    // Load textures with the manager
-    const textureLoader = new THREE.TextureLoader(manager);
-    textureLoader.load("/assets/textures/tree.jpg");
-    textureLoader.load("/assets/textures/grass.jpg");
-    textureLoader.load("/assets/textures/cloudy.jpg");
-  
-    // ✅ Correct FBXLoader usage (set manager separately)
-    const fbxLoader = new FBXLoader();
-    fbxLoader.setPath("/assets/models/"); // Set model directory
-    fbxLoader.load("Road_02.fbx", (object) => {
-      console.log("FBX Model Loaded:", object);
-    }, undefined, (error) => {
-      console.error("Error loading FBX:", error);
+
+    return new Promise((resolve) => {
+      manager.onProgress = (url, itemsLoaded, itemsTotal) => {
+        const percentage = (itemsLoaded / itemsTotal) * 100;
+        setProgress(isNaN(percentage) ? 0 : percentage);
+      };
+
+      manager.onLoad = () => {
+        console.log("All assets loaded.");
+        resolve();
+      };
+
+      // Load textures
+      const textureLoader = new THREE.TextureLoader(manager);
+      const textures = [
+        "/assets/textures/tree.jpg",
+        "/assets/textures/grass.jpg",
+        "/assets/textures/cloudy.jpg"
+      ].map(src => new Promise(resolve => textureLoader.load(src, resolve)));
+
+      // Load models
+      const fbxLoader = new FBXLoader();
+      fbxLoader.setPath("/assets/models/");
+      const loadFBX = (file) => new Promise((resolve, reject) => {
+        fbxLoader.load(file, (object) => {
+          console.log(`${file} loaded.`);
+          resolve(object);
+        }, undefined, reject);
+      });
+
+      const models = [
+        loadFBX("Road_02.fbx") // Add more models here if needed
+      ];
+
+      // Wait for all textures & models before resolving
+      Promise.all([...textures, ...models]).then(() => {
+        console.log("All assets fully loaded.");
+        resolve();
+      });
     });
   };
 
-  useEffect(() => {
-    if (gameState === "loading" && isFullyLoaded) {
-      setTimeout(() => setGameState("game"), 500); // Small buffer to ensure smooth loading
-    }
-  }, [isFullyLoaded, gameState]);
-
-  const handleStart = () => {
+  const handleStart = async () => {
     setGameState("loading");
-    preloadAssets();
+    await preloadAssets(); // ✅ Waits until everything is loaded before starting
+    setTimeout(() => setGameState("game"), 500);
   };
 
   if (gameState === "start") return <StartScreen onStart={handleStart} />;
