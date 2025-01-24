@@ -8,7 +8,7 @@ import { GameManager } from "./GameManager";
 import EnvironmentManager from "./EnvironmentManager";
 import TreeManager from "./TreeManager";
 
-const ThreeScene = ({ preloadedTrees, musicManager }) => {
+const ThreeScene = ({ preloadedTrees, musicManager, onRestart }) => {
   const mountRef = useRef(null);
   const [isGameOver, setIsGameOver] = useState(false);
   const [coinCount, setCoinCount] = useState(0);
@@ -267,7 +267,10 @@ const ThreeScene = ({ preloadedTrees, musicManager }) => {
       gameManager.cleanup();
       clearInterval(objectSpawnInterval);
       clearInterval(treeSpawnInterval);
-      mountRef.current.removeChild(renderer.domElement);
+      if (mountRef.current) {
+        mountRef.current.removeChild(renderer.domElement);
+      }
+      
 
       document.removeEventListener("touchmove", preventDefaultTouchActions);
       document.removeEventListener("gesturestart", preventDefaultTouchActions);
@@ -312,7 +315,7 @@ const ThreeScene = ({ preloadedTrees, musicManager }) => {
         >
           <h2 style={{ color: "red" }}>Game Over!</h2>
           <button
-            onClick={() => window.location.reload()}
+            onClick={onRestart}
             style={{
               padding: "10px 20px",
               marginTop: "20px",

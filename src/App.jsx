@@ -35,19 +35,6 @@ const App = () => {
         "/assets/textures/cloudy.jpg"
       ].map(src => new Promise(resolve => textureLoader.load(src, resolve)));
 
-      // ✅ Load FBX models
-      const fbxLoader = new FBXLoader();
-      fbxLoader.setPath("/assets/models/");
-      const loadFBX = (file) => new Promise((resolve, reject) => {
-        fbxLoader.load(file, (object) => {
-          console.log(`${file} loaded.`);
-          resolve(object);
-        }, undefined, reject);
-      });
-
-      const fbxModels = [
-        loadFBX("Road_02.fbx") // Add more models here if needed
-      ];
 
       // ✅ Load tree models (GLTF)
       const gltfLoader = new GLTFLoader(manager);
@@ -63,12 +50,11 @@ const App = () => {
       const glbModels = [
         loadGLB("tree1.glb"),
         loadGLB("tree2.glb"),
-        loadGLB('jump.glb'),
-        loadGLB('run.glb')
+        loadGLB('dying.glb'),
       ];
 
       // ✅ Wait for all assets (textures, FBX models, and trees) to load
-      Promise.all([...textures, ...fbxModels, ...glbModels]).then(() => {
+      Promise.all([...textures, ...glbModels]).then(() => {
         console.log("All assets fully loaded, including trees.");
         resolve();
       });
@@ -85,10 +71,21 @@ const App = () => {
 
   };
 
+  const handleRestart = () => {
+    setGameState("loading"); 
+    
+    setTimeout(() => {
+      setGameState("game");
+      musicManager.playBackgroundMusic();
+    }, 500);
+  };
+  
+
   if (gameState === "start") return <StartScreen onStart={handleStart} />;
   if (gameState === "loading") return <LoadingScreen progress={progress} />;
 
-  return <ThreeScene preloadedTrees={treeModels} musicManager={musicManager}/>; // ✅ Pass preloaded trees to ThreeScene
+  return <ThreeScene preloadedTrees={treeModels} musicManager={musicManager} onRestart={handleRestart} />;
+
 };
 
 export default App;
