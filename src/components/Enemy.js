@@ -1,113 +1,99 @@
-// Enemy.js
 import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"; // Import GLTFLoader
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 export class Enemy {
   constructor(scene, lanePositions, clock) {
     this.scene = scene;
     this.lanePositions = lanePositions;
-    this.clock = clock; // THREE.Clock instance to track elapsed time
+    this.clock = clock;
 
-    // List of possible enemy model paths (ensure these paths are correct and models have transparency if needed)
     const enemyModels = [
       "/assets/models/obs1.glb",
       "/assets/models/obs2.glb",
       "/assets/models/obs3.glb",
     ];
 
-    // Randomly select a model path
     const chosenModelPath =
       enemyModels[Math.floor(Math.random() * enemyModels.length)];
-    if (!chosenModelPath) {
-      console.warn("No valid model found. Defaulting to the first model.");
-    }
-
+    
     const loader = new GLTFLoader();
     loader.load(
       chosenModelPath || enemyModels[0],
       (gltf) => {
-        // Assuming the model has a single scene
         this.mesh = gltf.scene;
 
-        // ** Scaling the obstacle **
-        // Adjust the scale as needed to fit your game environment
-        this.mesh.scale.set(0.6, 0.6, 0.6); // Uniform scaling to 0.6
+        // Enhanced positioning and scaling
+        this.mesh.scale.set(0.8, 0.8, 0.8); // Slightly smaller scale
+        this.mesh.rotation.y = Math.PI * 0.5;
 
-        // ** Rotating the obstacle **
-        // Adjust rotation to align the model correctly in the scene
-        this.mesh.rotation.y = Math.PI * 0.5; // Fixed Y rotation for consistency
-        this.mesh.position.y = -2;
-
-        // Enable shadows for all child meshes
+        // Ground integration
         this.mesh.traverse((child) => {
           if (child.isMesh) {
+            // Enhanced shadow and ground interaction
             child.castShadow = true;
-            child.receiveShadow = false; // Disable receiving shadows to allow shadows on the road
-            if(child.material){
-              child.material.shadowSide = THREE.DoubleSide;
-              child.material = new THREE.MeshStandardMaterial({
-                ...child.material,
-                shadowMapSide: THREE.DoubleSide,
-                aoMapIntensity: 1.0
-              })
+            child.receiveShadow = true;
+
+            // Adjust material for more natural look
+            if (child.material) {
+              child.material.shadowSide = THREE.FrontSide;
+              child.material.needsUpdate = true;
             }
           }
         });
 
+        // Positioning just above ground with slight randomization
+        const groundLevel = -0.3; // Slightly embedded in ground
+        const jitterX = (Math.random() - 0.5) * 0.2; // Small horizontal jitter
+        const jitterRotation = (Math.random() - 0.5) * 0.2; // Small rotation variance
+
         // Randomly assign the enemy to a lane
         const enemyLane = Math.floor(Math.random() * 3) + 1;
-        const xPosition = this.lanePositions[enemyLane];
+        const xPosition = this.lanePositions[enemyLane] + jitterX;
         const zPosition = -20;
-        this.mesh.position.set(xPosition, 0, zPosition); // y=0 above ground
 
-        // Create a bounding box for collision detection
+        this.mesh.position.set(xPosition, groundLevel, zPosition);
+        this.mesh.rotation.y += jitterRotation;
+
+        // Create a more precise bounding box
         this.boundingBox = new THREE.Box3().setFromObject(this.mesh);
-        this.shrinkBoundingBox(0.5); // Shrink the bounding box by 50%
+        this.shrinkBoundingBox(0.6); // Slightly different shrink factor
 
-        // Add the enemy to the scene
         scene.add(this.mesh);
       },
       undefined,
       (error) => {
-        console.error("An error occurred while loading the model:", error);
-        // Optional: Create a fallback mesh if model fails to load
-        const fallbackGeometry = new THREE.BoxGeometry(1, 1, 1);
-        const fallbackMaterial = new THREE.MeshStandardMaterial({
-          color: "grey",
-          roughness: 0.5,
-          metalness: 0,
-          emissive: new THREE.Color(0x222222),
-          emissiveIntensity: 0.2,
-          transparent: true,
-          depthWrite: false,
-        });
-        this.mesh = new THREE.Mesh(fallbackGeometry, fallbackMaterial);
-        this.mesh.scale.set(0.6, 0.6, 0.6); // Ensure fallback matches obstacle scale
-        this.mesh.position.set(0, 0, -20);
-        this.mesh.castShadow = true;
-        this.mesh.receiveShadow = false; // Disable receiving shadows
-
-        // Randomly assign the enemy to a lane
-        const enemyLaneFallback = Math.floor(Math.random() * 3) + 1;
-        const xPositionFallback = this.lanePositions[enemyLaneFallback];
-        this.mesh.position.set(xPositionFallback, 0, -20); // y=0 above ground
-
-        // Create a bounding box for collision detection
-        this.boundingBox = new THREE.Box3().setFromObject(this.mesh);
-        this.shrinkBoundingBox(0.5); // Shrink the bounding box by 50%
-
-        // Add the fallback enemy to the scene
-        scene.add(this.mesh);
+        console.error("Model loading error:", error);
+        this.createFallbackObstacle();
       }
     );
-
-    // Initialize shader uniforms if needed
-    this.uniforms = {
-      uTime: { value: 0.0 },
-    };
   }
 
-  // Method to shrink the bounding box by a given scale factor
+  createFallbackObstacle() {
+    const fallbackGeometry = new THREE.CylinderGeometry(0.3, 0.5, 1, 6);
+    const fallbackMaterial = new THREE.MeshStandardMaterial({
+      color: 0x5C4033, // Earthy brown
+      roughness: 0.7,
+      metalness: 0.1,
+      shadowSide: THREE.FrontSide
+    });
+
+    this.mesh = new THREE.Mesh(fallbackGeometry, fallbackMaterial);
+    
+    // Ground-level positioning with slight randomization
+    const groundLevel = -0.1;
+    const enemyLane = Math.floor(Math.random() * 3) + 1;
+    const xPosition = this.lanePositions[enemyLane] + (Math.random() - 0.5) * 0.2;
+    
+    this.mesh.position.set(xPosition, groundLevel, -20);
+    this.mesh.castShadow = true;
+    this.mesh.receiveShadow = true;
+
+    this.boundingBox = new THREE.Box3().setFromObject(this.mesh);
+    this.shrinkBoundingBox(0.6);
+
+    this.scene.add(this.mesh);
+  }
+
   shrinkBoundingBox(scaleFactor = 0.5) {
     if (this.boundingBox) {
       const size = new THREE.Vector3();
@@ -123,20 +109,16 @@ export class Enemy {
   moveForward(speedMultiplier = 1) {
     const moveDistance = 0.2 * speedMultiplier;
     if (this.mesh) {
-      // Move the enemy mesh forward
       this.mesh.position.z += moveDistance;
-
-      // Update the bounding box to the new position
       this.boundingBox.setFromObject(this.mesh);
-      this.shrinkBoundingBox(0.5); // Maintain the shrunk bounding box
+      this.shrinkBoundingBox(0.6);
     }
   }
 
   checkCollision(player) {
-    if (this.boundingBox && player.boundingBox) {
-      return this.boundingBox.intersectsBox(player.boundingBox);
-    }
-    return false;
+    return this.boundingBox && player.boundingBox 
+      ? this.boundingBox.intersectsBox(player.boundingBox)
+      : false;
   }
 
   isOutOfView() {
@@ -145,10 +127,7 @@ export class Enemy {
 
   remove() {
     if (this.mesh) {
-      // Remove the enemy from the scene
       this.scene.remove(this.mesh);
-
-      // Dispose of the model's materials and geometries to free up memory
       this.mesh.traverse((child) => {
         if (child.isMesh) {
           if (child.material.map) child.material.map.dispose();
@@ -157,10 +136,5 @@ export class Enemy {
         }
       });
     }
-  }
-
-  // Update shader uniforms (should be called in the animation loop)
-  updateShader() {
-    // No shader to update since it's removed
   }
 }

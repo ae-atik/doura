@@ -5,6 +5,7 @@ export default class EnvironmentManager {
     this.scene = scene;
     this.speedMultiplierRef = speedMultiplierRef;
     this.groundMaterial = undefined;
+    this.grassInstances = [];
     this.addSky();
     this.addGround();
   }
@@ -98,6 +99,7 @@ export default class EnvironmentManager {
     ground.position.y = -5;
     this.scene.add(ground);
   }
+
 
   updateGround() {
     this.groundMaterial.uniforms.time.value += this.speedMultiplierRef.current * 0.3; // Moves road texture based on speed

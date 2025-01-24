@@ -10,7 +10,7 @@ export default class MusicManager {
       }),
       coinPickup: new Howl({
         src: ["/assets/audio/coinsound.mp3"],
-        volume: 0.3,
+        volume: 0.2,
       }),
     //   buffPickup: new Howl({
     //     src: ["/assets/audio/buff-pickup.mp3"],

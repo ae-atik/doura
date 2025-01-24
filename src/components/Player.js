@@ -9,7 +9,7 @@ export class Player {
     this.lanePositions = lanePositions;
     this.velocityY = 0;
     this.gravity = -0.004;
-    this.jumpStrength = 0.1;
+    this.jumpStrength = 0.09;
     this.onGround = true;
     this.mixer = undefined;
     this.model = undefined;

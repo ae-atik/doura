@@ -94,6 +94,8 @@ const ThreeScene = ({preloadedTrees, musicManager}) => {
     light.castShadow = true; // Enable shadow casting for the light
 
     // Configure shadow properties for better quality
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     light.shadow.mapSize.width = 1024;
     light.shadow.mapSize.height = 1024;
     light.shadow.camera.near = 0.5;
@@ -115,6 +117,68 @@ const ThreeScene = ({preloadedTrees, musicManager}) => {
     const treeSpawnInterval = setInterval(() => {
       if (Math.random() < 1) treeManager.spawnTree(); // Spawn trees randomly
     }, 400); // Reduce interval time for more frequent tree spawning
+
+    //coin glow effect
+    const createCoinParticleEffect = (position, scene) => {
+      const particleCount = 1;
+      const particles = new THREE.Group();
+    
+      for (let i = 0; i < particleCount; i++) {
+        const particleGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+        const particleMaterial = new THREE.MeshBasicMaterial({ color: "gold" });
+        const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+    
+        // Random starting position near the collected coin
+        particle.position.set(
+          position.x + (Math.random() - 0.5) * 0.3,
+          position.y + (Math.random() - 0.5) * 0.3,
+          position.z + (Math.random() - 0.5) * 0.3
+        );
+    
+        particles.add(particle);
+      }
+    
+      scene.add(particles);
+    
+      let scale = 1;
+      let opacity = 1;
+      const velocity = [];
+    
+      for (let i = 0; i < particleCount; i++) {
+        // Random outward velocity for each particle
+        velocity.push({
+          x: (Math.random() - 0.5) * 0.1,
+          y: Math.random() * 0.1 + 0.02,
+          z: (Math.random() - 0.5) * 0.1,
+        });
+      }
+    
+      const animateParticles = () => {
+        if (opacity <= 0) {
+          scene.remove(particles);
+          return;
+        }
+    
+        requestAnimationFrame(animateParticles);
+    
+        particles.children.forEach((particle, index) => {
+          particle.position.x += velocity[index].x;
+          particle.position.y += velocity[index].y;
+          particle.position.z += velocity[index].z;
+        });
+    
+        scale += 0.02;
+        opacity -= 0.05;
+        particles.children.forEach((particle) => {
+          particle.material.opacity = opacity;
+          particle.scale.set(scale, scale, scale);
+        });
+      };
+    
+      animateParticles();
+    };
+    
+    
 
     const animate = () => {
       if (isGameOver) return;
@@ -142,7 +206,8 @@ const ThreeScene = ({preloadedTrees, musicManager}) => {
       coinsRef.current.forEach((coin, index) => {
         const shouldCollect = coin.moveForward(currentSpeed, hasMagnetRef.current, player);
         if (shouldCollect || coin.checkCollision(player)) {
-          musicManager.playSoundEffect('coinPickup')
+          musicManager.playSoundEffect('coinPickup');
+          createCoinParticleEffect(coin.mesh.position, scene);
           setCoinCount((prev) => prev + 1);
           coin.remove();
           coinsRef.current.splice(index, 1);

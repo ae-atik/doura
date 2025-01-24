@@ -14,6 +14,8 @@ export default class TreeManager {
     this.treeModels = [
       "/assets/models/tree1.glb",
       "/assets/models/tree2.glb",
+      "/assets/models/tree3.glb",
+      "/assets/models/bush.glb",
     ];
 
     // Preload trees before the game starts
