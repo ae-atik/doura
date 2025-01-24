@@ -8,74 +8,50 @@ const StartScreen = ({ onStart }) => {
       height: "100dvh",
       top: "0",
       left: "0",
-      background: "radial-gradient(circle, #6a0572, #1a1a40, #000)",
+      background: "linear-gradient(135deg, #232526, #414345)", // Dark elegant gradient
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      color: "white",
+      color: "#f0f0f0",
+      fontFamily: "'Poppins', sans-serif",
       textAlign: "center",
-      fontFamily: "Arial, sans-serif",
-      overflow: "hidden",
-      animation: "colorShift 10s infinite alternate"
+      padding: "20px",
     }}>
+      {/* Game Title */}
       <h1 style={{
-        fontSize: "8vw",
-        whiteSpace: "nowrap",
-        marginBottom: "20px",
-        color: "#000000",
-        textShadow: "2px 2px 10px rgba(255, 0, 85, 0.8)",
-        animation: "glitch 0.8s infinite alternate ease-in-out"
+        fontSize: "9vw", // Responsive font size
+        fontWeight: "700",
+        marginBottom: "30px",
+        letterSpacing: "1px",
+        maxWidth: "90%",
       }}>
         DOURAAAAAA
       </h1>
 
+      {/* Start Button */}
       <button onClick={onStart} style={{
         padding: "15px 30px",
-        fontSize: "5vw",
-        background: "#28a745",
-        color: "white",
+        fontSize: "1.4rem",
+        background: "#f0f0f0",
+        color: "#232526",
         border: "none",
         cursor: "pointer",
         borderRadius: "10px",
-        width: "80%",
-        maxWidth: "300px",
+        transition: "background 0.3s ease, transform 0.2s ease",
         fontWeight: "bold",
-        textTransform: "uppercase",
-        boxShadow: "0 0 20px #28a745",
-        animation: "bounce 1s infinite ease-in-out, neonFlicker 1.5s infinite alternate ease-in-out"
-      }}>
+        letterSpacing: "0.5px",
+        width: "80%",
+        maxWidth: "280px",
+        textAlign: "center"
+      }}
+      onMouseOver={(e) => e.target.style.background = "#d6d6d6"}
+      onMouseOut={(e) => e.target.style.background = "#f0f0f0"}
+      onMouseDown={(e) => e.target.style.transform = "scale(0.95)"}
+      onMouseUp={(e) => e.target.style.transform = "scale(1)"}
+      >
         Start Game
       </button>
-
-      <style>
-        {`
-          @keyframes glitch {
-            0% { transform: skewX(0deg); }
-            25% { transform: skewX(-10deg); }
-            50% { transform: skewX(10deg); }
-            75% { transform: skewX(-10deg); }
-            100% { transform: skewX(0deg); }
-          }
-          
-          @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-          }
-
-          @keyframes neonFlicker {
-            0% { opacity: 0.8; }
-            50% { opacity: 1; }
-            100% { opacity: 0.8; }
-          }
-
-          @keyframes colorShift {
-            0% { background: radial-gradient(circle, #ff0077, #1a1a40, #000); }
-            50% { background: radial-gradient(circle, #ffcc00, #1a1a40, #000); }
-            100% { background: radial-gradient(circle, #00ccff, #1a1a40, #000); }
-          }
-        `}
-      </style>
     </div>
   );
 };

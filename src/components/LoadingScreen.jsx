@@ -27,52 +27,48 @@ const LoadingScreen = ({ progress }) => {
       height: "100dvh",
       top: "0",
       left: "0",
-      background: "linear-gradient(120deg, #001d3d, #003566, #001d3d)",
+      background: "linear-gradient(120deg, #ffecd2, #fcb69f)", // Soft peach-orange
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      color: "white",
+      color: "#333",
+      fontFamily: "'Poppins', sans-serif",
       textAlign: "center",
-      fontFamily: "Arial, sans-serif",
-      overflow: "hidden",
-      animation: "starsBackground 10s linear infinite"
+      padding: "20px",
     }}>
-      <h1 style={{
-        fontSize: "5vw",
-        color: "#ffffff",
-        textShadow: "0 0 10px #ffcc00, 0 0 20px #ff9900",
-        animation: "pulse 1s infinite alternate ease-in-out"
-      }}>
-        {loadingText} {isNaN(progress) ? "0" : Math.round(progress)}%
-      </h1>
-
+      {/* Circular Loading Indicator */}
       <div style={{
-        width: `${isNaN(progress) ? "0" : progress}%`,
-        height: "100px",
-        background: "rgba(255, 204, 0, 0.8)",
+        position: "relative",
+        width: "80px",
+        height: "80px",
         borderRadius: "50%",
-        filter: "blur(10px)",
-        animation: "expandingPulse 1s infinite ease-in-out"
-      }}></div>
+        background: "conic-gradient(#333 " + progress + "%, #ddd " + progress + "%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: "20px",
+      }}>
+        <span style={{ fontSize: "1rem", fontWeight: "bold" }}>{Math.round(progress)}%</span>
+      </div>
 
-      <style>
-        {`
-          @keyframes pulse {
-            from { transform: scale(1); }
-            to { transform: scale(1.1); }
-          }
-          @keyframes expandingPulse {
-            0% { transform: scale(0.7); opacity: 0.6; }
-            50% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(0.7); opacity: 0.6; }
-          }
-          @keyframes starsBackground {
-            0% { background-position: 0 0; }
-            100% { background-position: 1000px 1000px; }
-          }
-        `}
-      </style>
+      {/* Loading Text */}
+      <h2 style={{
+        fontSize: "1.3rem",
+        fontWeight: "500",
+        maxWidth: "90%",
+        marginBottom: "10px"
+      }}>
+        {loadingText}
+      </h2>
+
+      {/* Progress Indicator */}
+      <p style={{
+        fontSize: "1rem",
+        color: "#555"
+      }}>
+        Almost there...
+      </p>
     </div>
   );
 };

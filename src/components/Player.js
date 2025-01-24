@@ -152,9 +152,9 @@ export class Player {
       // Resume run after jump
       if (this.runAction && this.jumpAction) {
         this.runAction.reset();
-        this.runAction.fadeIn(0.2);
+        this.runAction.fadeIn(0.01);
         this.runAction.play();
-
+        
         this.jumpAction.stop();
         this.jumpAction = null;
       }
