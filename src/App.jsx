@@ -62,7 +62,9 @@ const App = () => {
 
       const glbModels = [
         loadGLB("tree1.glb"),
-        loadGLB("tree2.glb")
+        loadGLB("tree2.glb"),
+        loadGLB('jump.glb'),
+        loadGLB('run.glb')
       ];
 
       // ✅ Wait for all assets (textures, FBX models, and trees) to load
